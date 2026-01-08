@@ -20,19 +20,25 @@ public class RpcDecoder extends LengthFieldBasedFrameDecoder {
     
     /**
      * LengthFieldBasedFrameDecoder参数说明：
-     * maxFrameLength: 一个整整消息的最大锻叨黎
-     * lengthFieldOffset: 频䷕长度字段的位置弗接 (4+1+1+1 = 7)
-     * lengthFieldLength: 频䷕长度字段本身体增丰 (4字节)
-     * lengthAdjustment: 频䷕长度序序中佋轮的惨段斯 (0)
-     * initialBytesToStrip: 装野时丢弃的字节数 (7 + 4 = 11)
+     * 协议格式：
+     * +-------+--------+----------+----------+----------+----------+
+     * | 魔数  | 版本号 |序列化| 消息类型 | 数据长度 | 实际数据   |
+     * | 4字节 | 1字节  | 1字节  | 1字节   | 4字节    | N字节    |
+     * +-------+--------+----------+----------+----------+----------+
+     * 位置0-3 位置4     位置5      位置6      位置7-10
+     * 
+     * lengthFieldOffset: 7 (数据长度字段位置 = 4+1+1+1 = 7)
+     * lengthFieldLength: 4 (数据长度字段大小 = 4字节)
+     * lengthAdjustment: 0 (不需调整)
+     * initialBytesToStrip: 0 (不丢弃，手动读取所有字段)
      */
     public RpcDecoder() {
         super(
             RpcConstants.MAX_FRAME_LENGTH,  // 最大消息长度
-            7,                               // 频䷕长度字段位置 (4+1+1+1)
-            4,                               // 频䷕长度字段本身体增丰
-            0,                               // 频䷕长度调整
-            11                               // 丢弃的字节数 (魔数+版本+序列类型+消息类型+长度)
+            7,                               // lengthFieldOffset (位置7开始)
+            4,                               // lengthFieldLength (4字节长度)
+            0,                               // lengthAdjustment (不需调整)
+            0                                // initialBytesToStrip (不丢弃，手动读取)
         );
     }
     

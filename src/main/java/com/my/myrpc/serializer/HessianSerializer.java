@@ -32,10 +32,12 @@ public class HessianSerializer implements Serializer {
     @Override
     public <T> T deserialize(byte[] bytes, Class<T> clazz) {
         try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
-            Hessian2Input input = new Hessian2Input(bais);\n            return (T) input.readObject(clazz);
+            Hessian2Input input = new Hessian2Input(bais);
+            return (T) input.readObject(clazz);
         } catch (IOException e) {
             log.error("Hessian反序列化失败", e);
             throw new RpcException("Hessian反序列化失败", e);
         }
     }
-}
+    }
+

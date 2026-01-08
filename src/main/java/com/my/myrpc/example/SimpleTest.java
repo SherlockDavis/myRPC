@@ -1,6 +1,7 @@
 package com.my.myrpc.example;
 
 import com.my.myrpc.common.constants.RpcConstants;
+import com.my.myrpc.example.provider.HelloServiceImpl;
 import com.my.myrpc.protocol.RpcMessage;
 import com.my.myrpc.protocol.RpcRequest;
 import com.my.myrpc.serializer.SerializerFactory;

@@ -37,7 +37,7 @@ public class SerializerFactory {
     public static Serializer getSerializer(byte serializerType) {
         Serializer serializer = serializerMap.get(serializerType);
         if (serializer == null) {
-            log.warn(\"未知的序列化类型: {}, 使用默认Hessian序列化器\", serializerType);
+            log.warn("未知的序列化类型: {}, 使用默认Hessian序列化器", serializerType);
             serializer = serializerMap.get(HESSIAN_SERIALIZER);
         }
         return serializer;
