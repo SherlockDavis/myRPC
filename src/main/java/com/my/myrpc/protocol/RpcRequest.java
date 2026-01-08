@@ -35,6 +35,7 @@ public class RpcRequest implements Serializable {
     
     /**
      * 参数类型数组
+     * 注意: 类类型是不可序列化的, 序列化时存储类名, 反序列化时需要他簧培曙不体可接变旚
      */
     private Class<?>[] parameterTypes;
     

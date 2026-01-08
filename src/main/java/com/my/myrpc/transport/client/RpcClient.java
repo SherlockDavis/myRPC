@@ -5,8 +5,9 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
+import com.my.myrpc.codec.RpcDecoder;
+import com.my.myrpc.codec.RpcEncoder;
+import com.my.myrpc.protocol.RpcMessage;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,9 +40,8 @@ public class RpcClient {
                         ChannelPipeline pipeline = ch.pipeline();
                         // 心跳检测：15秒没有写操作则发送心跳
                         pipeline.addLast(new IdleStateHandler(0, 15, 0, TimeUnit.SECONDS));
-                        // 临时使用字符串编解码器（Day 2会替换为自定义协议）
-                        pipeline.addLast(new StringDecoder());
-                        pipeline.addLast(new StringEncoder());
+                        pipeline.addLast(new RpcDecoder());
+                        pipeline.addLast(new RpcEncoder());
                         // 业务处理器
                         pipeline.addLast(clientHandler);
                     }
@@ -61,18 +61,17 @@ public class RpcClient {
      * 发送RPC请求
      * @param host 服务端地址
      * @param port 服务端端口
-     * @param request 请求对象
-     * @return 响应对象
+     * @param message RPC消息
      */
-    public Object sendRequest(String host, int port, Object request) {
+    public void sendRequest(String host, int port, Object message) {
         try {
             Channel channel = connect(host, port);
             
             if (channel != null && channel.isActive()) {
                 // 发送请求
-                channel.writeAndFlush(request).addListener((ChannelFutureListener) future -> {
+                channel.writeAndFlush(message).addListener((ChannelFutureListener) future -> {
                     if (future.isSuccess()) {
-                        log.info("请求发送成功: {}", request);
+                        log.info("请求发送成功");
                     } else {
                         log.error("请求发送失败", future.cause());
                     }
@@ -88,7 +87,6 @@ public class RpcClient {
         } catch (Exception e) {
             log.error("发送请求失败", e);
         }
-        return null;
     }
     
     /**

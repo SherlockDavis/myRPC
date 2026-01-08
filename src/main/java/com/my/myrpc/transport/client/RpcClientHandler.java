@@ -1,5 +1,6 @@
 package com.my.myrpc.transport.client;
 
+import com.my.myrpc.protocol.RpcMessage;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleState;
@@ -11,14 +12,14 @@ import lombok.extern.slf4j.Slf4j;
  * 负责接收服务端响应
  */
 @Slf4j
-public class RpcClientHandler extends SimpleChannelInboundHandler<String> {
+public class RpcClientHandler extends SimpleChannelInboundHandler<RpcMessage> {
     
     /**
      * 接收服务端响应
      */
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, String msg) {
-        log.info("客户端收到响应: {}", msg);
+    protected void channelRead0(ChannelHandlerContext ctx, RpcMessage msg) {
+        log.info("客户端收到响应: {}", msg.getData());
         
         // TODO: Day 3 实现响应匹配逻辑
         // 1. 根据requestId匹配请求

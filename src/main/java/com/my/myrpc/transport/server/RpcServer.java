@@ -5,8 +5,9 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
+import com.my.myrpc.codec.RpcDecoder;
+import com.my.myrpc.codec.RpcEncoder;
+import com.my.myrpc.common.constants.RpcConstants;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -57,9 +58,8 @@ public class RpcServer {
                             ChannelPipeline pipeline = ch.pipeline();
                             // 空闲状态检测：30秒没有读操作则触发事件
                             pipeline.addLast(new IdleStateHandler(30, 0, 0, TimeUnit.SECONDS));
-                            // 临时使用字符串编解码器（Day 2会替换为自定义协议）
-                            pipeline.addLast(new StringDecoder());
-                            pipeline.addLast(new StringEncoder());
+                            pipeline.addLast(new RpcDecoder());
+                            pipeline.addLast(new RpcEncoder());
                             // 业务处理器
                             pipeline.addLast(new RpcServerHandler());
                         }
@@ -97,3 +97,4 @@ public class RpcServer {
         log.info("RPC服务端已关闭");
     }
 }
+
