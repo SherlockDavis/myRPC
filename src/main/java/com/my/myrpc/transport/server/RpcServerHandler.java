@@ -11,6 +11,7 @@ import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -82,10 +83,22 @@ public class RpcServerHandler extends SimpleChannelInboundHandler<RpcMessage> {
         }
         
         try {
-            // TODO: 实现反射调用逻辑
-            Object result = null;
+            // 获取方法
+            Method method = service.getClass().getMethod(
+                    request.getMethodName(),
+                    request.getParameterTypes()
+            );
+            
+            // 调用方法
+            Object result = method.invoke(service, request.getParameters());
+            
+            log.info("服务调用成功: {}.{}()", 
+                    request.getInterfaceName(), request.getMethodName());
+            
             return RpcResponse.success(request.getRequestId(), result);
         } catch (Exception e) {
+            log.error("服务调用失败: {}.{}()", 
+                    request.getInterfaceName(), request.getMethodName(), e);
             throw new RuntimeException("服务调用失败", e);
         }
     }
