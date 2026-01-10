@@ -5,6 +5,7 @@ import com.my.myrpc.example.api.HelloService;
 import com.my.myrpc.example.provider.HelloServiceImpl;
 import com.my.myrpc.protocol.RpcMessage;
 import com.my.myrpc.protocol.RpcRequest;
+import com.my.myrpc.protocol.RpcResponse;
 import com.my.myrpc.serializer.SerializerFactory;
 import com.my.myrpc.transport.client.RpcClient;
 import com.my.myrpc.transport.server.RpcServer;
@@ -12,6 +13,7 @@ import com.my.myrpc.transport.server.RpcServerHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Day 3 测试类
@@ -65,11 +67,22 @@ public class Day3Test {
                 .data(request)
                 .build();
         
-        log.info("\n============== 测试反射调用 ==============");
+        log.info("\n============== 测试异步响应 ==============");
         log.info("请求ID: {}", requestId);
         log.info("调用方法: HelloService.sayHello(\"RPC Framework\")");
         
-        client.sendRequest("localhost", 8888, message);
+        CompletableFuture<RpcResponse> future = client.sendRequest("localhost", 8888, message);
+        
+        // 等待响应
+        try {
+            RpcResponse response = future.get(5, java.util.concurrent.TimeUnit.SECONDS);
+            log.info("\n============== 响应结果 ==============");
+            log.info("状态码: {}", response.getCode());
+            log.info("响应消息: {}", response.getMessage());
+            log.info("返回数据: {}", response.getData());
+        } catch (Exception e) {
+            log.error("等待响应失败", e);
+        }
         
         // 等待一下
         try {

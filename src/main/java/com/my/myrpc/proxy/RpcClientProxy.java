@@ -91,13 +91,26 @@ public class RpcClientProxy implements InvocationHandler {
                 .build();
         
         // 发送请求并等待响应
-        rpcClient.sendRequest(host, port, message);
+        CompletableFuture<RpcResponse> responseFuture = rpcClient.sendRequest(host, port, message);
         
-        // TODO: Day 3 实现异步等待响应
-        // 使用CompletableFuture实现异步等待
-        
-        log.info("RPC调用完成: {}.{}()", interfaceName, methodName);
-        return null;
+        // 同步等待响应（3秒超时）
+        try {
+            RpcResponse rpcResponse = responseFuture.get(3, java.util.concurrent.TimeUnit.SECONDS);
+            
+            if (rpcResponse.getCode() == 200) {
+                log.info("RPC调用成功: {}.{}()", interfaceName, methodName);
+                return rpcResponse.getData();
+            } else {
+                log.error("RPC调用失败: {}", rpcResponse.getMessage());
+                throw new RuntimeException("RPC调用失败: " + rpcResponse.getMessage());
+            }
+        } catch (java.util.concurrent.TimeoutException e) {
+            log.error("RPC调用超时: {}.{}()", interfaceName, methodName);
+            throw new RuntimeException("RPC调用超时", e);
+        } catch (Exception e) {
+            log.error("RPC调用异常: {}.{}()", interfaceName, methodName, e);
+            throw new RuntimeException("RPC调用异常", e);
+        }
     }
     
     public void close() {

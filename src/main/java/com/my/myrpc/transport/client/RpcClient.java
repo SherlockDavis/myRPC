@@ -8,6 +8,8 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import com.my.myrpc.codec.RpcDecoder;
 import com.my.myrpc.codec.RpcEncoder;
 import com.my.myrpc.protocol.RpcMessage;
+import com.my.myrpc.protocol.RpcRequest;
+import com.my.myrpc.protocol.RpcResponse;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,31 +64,48 @@ public class RpcClient {
      * @param host 服务端地址
      * @param port 服务端端口
      * @param message RPC消息
+     * @return CompletableFuture<RpcResponse>
      */
-    public void sendRequest(String host, int port, Object message) {
+    public CompletableFuture<RpcResponse> sendRequest(String host, int port, RpcMessage message) {
+        CompletableFuture<RpcResponse> resultFuture = new CompletableFuture<>();
+        
         try {
             Channel channel = connect(host, port);
             
             if (channel != null && channel.isActive()) {
+                // 获取requestId
+                String requestId = null;
+                if (message.getData() instanceof RpcRequest) {
+                    requestId = ((RpcRequest) message.getData()).getRequestId();
+                }
+                
+                // 注册Future
+                if (requestId != null) {
+                    clientHandler.getUnprocessedRequests().put(requestId, resultFuture);
+                }
+                
                 // 发送请求
+                final String finalRequestId = requestId;
                 channel.writeAndFlush(message).addListener((ChannelFutureListener) future -> {
                     if (future.isSuccess()) {
-                        log.info("请求发送成功");
+                        log.info("请求发送成功: requestId={}", finalRequestId);
                     } else {
                         log.error("请求发送失败", future.cause());
+                        resultFuture.completeExceptionally(future.cause());
+                        if (finalRequestId != null) {
+                            clientHandler.getUnprocessedRequests().remove(finalRequestId);
+                        }
                     }
                 });
-                
-                // TODO: Day 3 实现异步等待响应
-                // 使用CompletableFuture实现异步等待
-                
-                // 临时实现：等待一下让响应返回
-                Thread.sleep(1000);
-                channel.close();
+            } else {
+                resultFuture.completeExceptionally(new RuntimeException("连接失败"));
             }
         } catch (Exception e) {
             log.error("发送请求失败", e);
+            resultFuture.completeExceptionally(e);
         }
+        
+        return resultFuture;
     }
     
     /**
