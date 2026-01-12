@@ -26,7 +26,8 @@ public class SerializerFactory {
         // 注册所有序列化器
         serializerMap.put(JDK_SERIALIZER, new JdkSerializer());
         serializerMap.put(HESSIAN_SERIALIZER, new HessianSerializer());
-        // TODO: 注册Protobuf序列化器
+        serializerMap.put(PROTOBUF_SERIALIZER, new ProtobufSerializer());
+        log.info("序列化器工厂初始化完成，支持: JDK、Hessian、Protobuf");
     }
     
     /**
